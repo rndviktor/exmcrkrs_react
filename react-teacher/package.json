@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 4021",
+    "dev:net": "vite --port 4021 --mode net",
+    "dev:go": "vite --port 4021 --mode go",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
