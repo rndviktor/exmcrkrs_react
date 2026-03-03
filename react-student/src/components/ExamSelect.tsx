@@ -29,7 +29,9 @@ export default function ExamSelect({exams}:{exams:ExamType[]}) {
                 }
             }
             if (resData.SubmissionInProcess) {
-                window.location.reload();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500)
             }
         }
     }
