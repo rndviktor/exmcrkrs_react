@@ -85,8 +85,11 @@ export default function Question() {
         
         if (res.ok && (res.status == 201||res.status == 200)) {
             didFetchRef.current = false;
-            const timeout = destination === '/' ? 500 : 0;
-            setTimeout(() => {navigate(destination)}, timeout)
+            let options = {}
+            if (destination === '/') {
+                options = {state: {fromQuestion: true}}
+            }
+            navigate(destination, options);
         }
     }
     

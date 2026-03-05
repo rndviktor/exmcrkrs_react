@@ -1,5 +1,5 @@
 ﻿import ExamSelect from "./ExamSelect.tsx";
-import {NavLink, Outlet, useNavigate} from "react-router-dom";
+import {NavLink, Outlet, useLocation, useNavigate} from "react-router-dom";
 import {useEnv} from "../EnvProvider.tsx";
 import {useEffect, useRef, useState} from "react";
 import type {ExamType} from "../types.ts";
@@ -9,6 +9,7 @@ export default function MainView() {
     const [exams, setExams] = useState<ExamType[]>([])
     const [gradeNav, setGradeNav] = useState<boolean>(false)
     const navigate = useNavigate();
+    const location = useLocation();
     const didFetchRef = useRef(false);
     
     const tabs = [
@@ -25,7 +26,7 @@ export default function MainView() {
                 if (response.ok && response.status === 200) {
                     const resData = await response.json();
                     console.log('-res', resData);
-                    if (resData.ExamInProcess) {
+                    if (!location.state?.fromQuestion && resData.ExamInProcess) {
                         const {ExamSubmissionId, QuestionId} = resData.ExamInProcess
                         navigate(`/${ExamSubmissionId}/question/${QuestionId}`)
                     }
@@ -33,6 +34,9 @@ export default function MainView() {
                         setGradeNav(true);
                     }
                     setExams(resData?.Exams || []);
+                    if (location.state?.fromQuestion) {
+                        navigate(location.pathname, { replace: true, state: {} });
+                    }
                 }
             } catch (error) {
                 console.log('Fetch error:', error);
@@ -41,7 +45,7 @@ export default function MainView() {
 
         fetchExams();
         return () => { didFetchRef.current = true; };
-    }, []);
+    }, [location, navigate]);
     
     
     return (
