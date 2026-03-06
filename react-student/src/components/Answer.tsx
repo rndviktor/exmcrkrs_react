@@ -1,12 +1,13 @@
-import type {AnswerType} from "../types.ts";
-
-export default function Answer({answer, checked, onSelectChange}: {
+import type { AnswerType } from "../types.ts";
+import React from "react";
+export default React.memo(function Answer({ answer, checked, onSelectChange }: {
     answer: AnswerType,
     onSelectChange: (answerId: string) => void,
-    checked?: boolean}) {
-    
+    checked?: boolean
+}) {
+
     const idStr = `answer_${answer.AnswerId}`
-    
+
     return (
         <div id={idStr} className="flex flex-row flex-1 border-b-1 border-b-gray-200 justify-between">
             <div className="flex flex-row justify-items-start" onClick={() => onSelectChange(answer.AnswerId!)}>
@@ -15,4 +16,4 @@ export default function Answer({answer, checked, onSelectChange}: {
             </div>
         </div>
     )
-}
+})
