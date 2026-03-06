@@ -1,13 +1,14 @@
-import type {AnswerType} from "../types.ts";
+import type { AnswerType } from "../types.ts";
 import classes from "./Answer.module.css";
-import {MdCancel, MdDelete, MdEdit} from "react-icons/md";
-import {useState} from "react";
-import {GiConfirmed} from "react-icons/gi";
+import { MdCancel, MdDelete, MdEdit } from "react-icons/md";
+import { useState } from "react";
+import { GiConfirmed } from "react-icons/gi";
 import TextareaAutosize from "react-textarea-autosize";
 import Confirm from "./Confirm.tsx";
-import {useEnv} from "../EnvProvider.tsx";
+import { useEnv } from "../EnvProvider.tsx";
+import React from "react";
 
-export default function Answer({examId, questionId, answer, isEditable = false, onSubmitted, onDismissed, onDelete}: {
+const Answer = ({ examId, questionId, answer, isEditable = false, onSubmitted, onDismissed, onDelete }: {
     examId: string,
     questionId: string,
     answer?: AnswerType,
@@ -15,7 +16,7 @@ export default function Answer({examId, questionId, answer, isEditable = false, 
     onSubmitted?: (ans: AnswerType) => void,
     onDismissed?: () => void,
     onDelete?: (answerId: string) => void,
-}) {
+}) => {
     const [isEdit, setIsEdit] = useState(!answer && isEditable);
     const [showDelete, setShowDelete] = useState<boolean>(false);
     const [isCorrect, setIsCorrect] = useState(answer?.IsCorrect || false);
@@ -36,17 +37,17 @@ export default function Answer({examId, questionId, answer, isEditable = false, 
             IsCorrect: isCorrect
         } as AnswerType;
         if (answer) {
-            submitData = {...submitData, AnswerId: answer.AnswerId}
+            submitData = { ...submitData, AnswerId: answer.AnswerId }
         }
         const response = await fetch(`${env.teacherWriteAPIUrl}/api/v1/${urlPart}/${examId}`, {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(submitData),
         });
 
         if (response.ok && response.status == 201 && !answer) {
             const resData = await response.json();
-            const {Id} = resData
+            const { Id } = resData
             submitData.AnswerId = Id;
         }
 
@@ -58,8 +59,8 @@ export default function Answer({examId, questionId, answer, isEditable = false, 
     const handleDeletion = async () => {
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/removeAnswer/${examId}`, {
             method: 'DELETE',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({questionId: questionId, answerId: answer!.AnswerId}),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionId: questionId, answerId: answer!.AnswerId }),
         });
 
         onDelete && answer && onDelete(answer.AnswerId!)
@@ -76,10 +77,10 @@ export default function Answer({examId, questionId, answer, isEditable = false, 
                 <div className="whitespace-pre-line px-2 font-thin">{answer.Content}</div>
             </div>
             {isEditable && (<div className="justify-end">
-                    <button id="editAnswer" className={classes.button} onClick={() => setIsEdit(true)}><MdEdit size={16}/></button>
-                    <button className={classes.button} onClick={() => setShowDelete(true)}><MdDelete size={16}/>
-                    </button>
-                </div>
+                <button id="editAnswer" className={classes.button} onClick={() => setIsEdit(true)}><MdEdit size={16} /></button>
+                <button className={classes.button} onClick={() => setShowDelete(true)}><MdDelete size={16} />
+                </button>
+            </div>
             )}
         </>)}
         {isEdit && (<>
@@ -92,18 +93,20 @@ export default function Answer({examId, questionId, answer, isEditable = false, 
                     onChange={e => setIsCorrect(e.target.checked)}
                 />
                 <TextareaAutosize className="flex-1 px-2" value={answerContent}
-                                  id="contentEd"
-                                  onChange={e => setAnswerContent(e.target.value)}/>
+                    id="contentEd"
+                    onChange={e => setAnswerContent(e.target.value)} />
             </div>
             <div className="justify-end">
-                <button className={classes.button} onClick={handleSubmit} id="confirmAnswer"><GiConfirmed size={16}/></button>
+                <button className={classes.button} onClick={handleSubmit} id="confirmAnswer"><GiConfirmed size={16} /></button>
                 <button className={classes.button} onClick={() => {
                     onDismissed && onDismissed();
                     setIsEdit(false)
-                }}><MdCancel size={16}/></button>
+                }}><MdCancel size={16} /></button>
             </div>
         </>)}
 
-        <Confirm itemName="Answer" onConfirm={handleDeletion} onCancel={handleCancel} isOpen={showDelete}/>
+        <Confirm itemName="Answer" onConfirm={handleDeletion} onCancel={handleCancel} isOpen={showDelete} />
     </div>
 }
+
+export default React.memo(Answer);
