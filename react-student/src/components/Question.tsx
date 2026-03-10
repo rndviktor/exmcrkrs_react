@@ -94,8 +94,10 @@ export default function Question() {
             let options = {}
             if (destination === '/') {
                 options = { state: { fromQuestion: true } }
+                setTimeout(() => navigate(destination, options), 100)
+            } else {
+                navigate(destination, options);    
             }
-            navigate(destination, options);
         }
     }
 
