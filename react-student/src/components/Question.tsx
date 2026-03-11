@@ -21,7 +21,8 @@ export default function Question() {
 
         const fetchQuestion = async (submissionId: string, questionId: string) => {
             try {
-                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/questionView/${submissionId}/${questionId}`, { signal: controller.signal });
+                const questionEnd = questionId ? `/${questionId}` : '';
+                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/questionView/${submissionId}${questionEnd}`, { signal: controller.signal });
                 if (response.ok && response.status === 200) {
                     const resData = await response.json();
                     if (!ignore) setQuestion(resData.Question);

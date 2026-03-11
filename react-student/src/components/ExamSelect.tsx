@@ -4,12 +4,14 @@ import classes from './Exams.module.css';
 import { MdEdit } from "react-icons/md";
 import type { ExamType, PaymentConfirmationSubmission } from "../types.ts";
 import { PaymentConfirmation } from "./PaymentConfirmation.tsx";
+import {useNavigate} from "react-router-dom";
 
 export default function ExamSelect({ exams }: { exams: ExamType[] }) {
     const env = useEnv()
     const [selectedExamId, setSelectedExamId] = useState<string | null>(null)
     const [pubKey, setPubKey] = useState("")
     const [errorMessage, setErrorMessage] = useState('')
+    const navigate = useNavigate();
 
     const handleStart = useCallback(async (submission: PaymentConfirmationSubmission) => {
         const response = await fetch(`${env.studentWriteAPIUrl}/api/v1/examStart/${env.defaultStudentId}`, {
@@ -29,9 +31,7 @@ export default function ExamSelect({ exams }: { exams: ExamType[] }) {
                 }
             }
             if (resData.SubmissionInProcess) {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500)
+                navigate(`/${resData.SubmissionInProcess.ExamSubmissionId}/question`)
             }
         }
     }, [env.defaultStudentId, env.studentWriteAPIUrl]);

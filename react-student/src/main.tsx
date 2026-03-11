@@ -15,6 +15,10 @@ const router = createBrowserRouter([{
             element: <MainView/>,
         },
         {
+            path: '/:submissionId/question',
+            element: <Question/>
+        },
+        {
             path: '/:submissionId/question/:questionId',
             element: <Question/>
         },
