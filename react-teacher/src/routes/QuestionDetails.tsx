@@ -1,14 +1,13 @@
 import {Link, useNavigate, useParams} from "react-router-dom";
 import type {AnswerType, QuestionType} from "../types.ts";
 import classes from "./QuestionDetails.module.css";
-import {MdCancel, MdDelete, MdEdit, MdHome, MdQuestionAnswer} from "react-icons/md";
+import {MdDelete, MdHome, MdQuestionAnswer} from "react-icons/md";
 import {useEffect, useState} from "react";
 import Answer from "../components/Answer.tsx";
-import TextareaAutosize from "react-textarea-autosize";
-import {GiConfirmed} from "react-icons/gi";
 import Confirm from "../components/Confirm.tsx";
 import {useEnv} from "../EnvProvider.tsx";
 import {useExamContext} from "../ExamProvider.tsx";
+import QuestionContentEditor from "../components/QuestionContentEditor.tsx";
 
 export default function QuestionDetails() {
     const { exams, addOrUpdateQuestion, removeQuestion } = useExamContext()
@@ -27,8 +26,6 @@ export default function QuestionDetails() {
         }
     }, [exams, examId, questionId]);
     
-    
-    const [isContentEditing, setIsContentEditing] = useState(false)
     const [content, setContent] = useState<string|undefined|null>(null);
     const [isAnswerAdding, setIsAnswerAdding] = useState(false);
     
@@ -56,18 +53,17 @@ export default function QuestionDetails() {
         addOrUpdateQuestion(examId!, question!)
     }
 
-    const handleContentSubmit = async () => {
+    const handleContentSubmit = async (cont: string) => {
         const submitQuestion: QuestionType = {
-            ...question, Content: content
+            ...question, Content: cont
         };
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/editQuestionContent/${examId}`, {
             method: 'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(submitQuestion),
         });
-        
+        setContent(cont)
         addOrUpdateQuestion(examId!, submitQuestion)
-        setIsContentEditing(false);
     }
 
     const handleDeletion = async () => {
@@ -91,27 +87,7 @@ export default function QuestionDetails() {
                 <MdDelete size={18}/>
             </button>
         </div>
-        {!isContentEditing && (<div className="flex flex-row flex-1">
-            <div className="whitespace-pre-line border-b-2 border-t-4 border-t-cyan-600 flex-1">{content}</div>
-            <div className="flex flex-col">
-                <button id="contentEdit" className={classes.smButton} onClick={() => setIsContentEditing(true)}><MdEdit size={18}/>
-                </button>
-            </div>
-        </div>)}
-        {isContentEditing && (<div className="flex flex-row flex-1">
-            <TextareaAutosize className="whitespace-pre-line border-b-2 border-t-4 border-t-cyan-600 flex-1"
-                              value={content || ""} onChange={e => setContent(e.target.value)}/>
-            <div className="flex flex-col">
-                <button id="questionContentSubmit" className={classes.smButton} onClick={handleContentSubmit}>
-                    <GiConfirmed size={16}/>
-                </button>
-            </div>
-            <div className="flex flex-col">
-                <button className={classes.smButton} onClick={() => setIsContentEditing(false)}>
-                    <MdCancel size={16}/>
-                </button>
-            </div>
-        </div>)}
+        <QuestionContentEditor content={content!} createNew={false} onSubmit={async (str: string) => handleContentSubmit(str)}/>
         {question?.Answers?.map((answer: AnswerType) => <Answer key={answer.AnswerId} examId={examId!} questionId={questionId!}
                                                                 answer={answer} isEditable={true}
                                                                 onSubmitted={onAnswerListUpdated}
