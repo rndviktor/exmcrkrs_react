@@ -148,7 +148,7 @@ export default function QuestionContentEditor({ content, createNew, onSubmit }:{
                 </div>
                 
                 <div className="gap-1">
-                    <button onClick={(e) => handleSubmit(e)}>
+                    <button id="questionContentSubmit" onClick={(e) => handleSubmit(e)}>
                         <Check size={12}/>
                     </button>
                     <button onClick={() => handleEditToggle(false)}>
