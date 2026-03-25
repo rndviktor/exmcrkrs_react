@@ -79,7 +79,7 @@ export default function QuestionContentEditor({ content, createNew, onSubmit }:{
         <div className="flex flex-1 items-center gap-1 border-b p-1 bg-cyan-700 rounded-t-md ">
             {!createNew && !editor.isEditable && (<>
                 <div></div>
-                <button onClick={() => handleEditToggle(true)}>
+                <button id="contentEdit" onClick={() => handleEditToggle(true)}>
                     <Edit size={12}/>
                 </button>
             </>)}
