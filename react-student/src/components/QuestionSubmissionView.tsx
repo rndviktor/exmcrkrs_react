@@ -35,7 +35,7 @@ export default function QuestionSubmissionView({question, selection, questionCor
     }, [])
     
     return (<>
-            <div className="whitespace-pre-line border-b-2 border-l-2 border-t-4 border-t-cyan-600 flex-1 mx-2"
+            <div className="whitespace-pre-line border-b-2 border-l-2 border-t-4 border-t-cyan-600 flex-1 mx-2 question-content"
                  dangerouslySetInnerHTML={{ __html: content }}
             />
         <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
