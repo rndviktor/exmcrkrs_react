@@ -17,9 +17,11 @@ import {TextStyleKit} from "@tiptap/extension-text-style";
 import TextAlign from '@tiptap/extension-text-align'
 import StarterKit from "@tiptap/starter-kit";
 import Image from '@tiptap/extension-image'
+import { EditorView } from '@tiptap/pm/view'
+import {useEnv} from "../EnvProvider.tsx";
 
 
-export default function QuestionContentEditor({ content, createNew, onSubmit }:{content: string|null, createNew: boolean, onSubmit?: (data: string) => void }) {
+export default function QuestionContentEditor({ examId, content, createNew, onSubmit }:{examId: string, content: string|null, createNew: boolean, onSubmit?: (data: string) => void }) {
     const [, setTick] = useState(0);
     
     const editor = useEditor({
@@ -36,11 +38,43 @@ export default function QuestionContentEditor({ content, createNew, onSubmit }:{
         editable: createNew,
         onUpdate: () => setTick(tick => tick + 1),
         onSelectionUpdate: () => setTick(tick => tick + 1),
+        editorProps: {
+            handleDrop: (view, event, _, moved) => {
+                if (!moved && event.dataTransfer?.files[0]) {
+                    const file = event.dataTransfer.files[0];
+                    
+                    if (/image/i.test(file.type)) {
+                        uploadImage(file, view)
+                        return true
+                    }
+                }
+                
+                return false
+            },
+            handlePaste: (view, event) => {
+                const items = Array.from(event.clipboardData?.items || [])
+
+                for (const item of items) {
+                    if (item.type.indexOf('image') === 0) {
+                        const file = item.getAsFile()
+                        
+                        if (file) {
+                            uploadImage(file, view)
+                            return true
+                        }
+                    }
+                }
+                
+                return false
+            }
+        }
     });
 
     if (!editor) {
         return null;
     }
+
+    const env = useEnv();
 
     useEffect(() => {
         editor.commands.setContent(content)
@@ -49,6 +83,29 @@ export default function QuestionContentEditor({ content, createNew, onSubmit }:{
     const providerValue = useMemo(() => ({editor}), [editor]);
     
     const [edit, setEdit] = useState(false)
+    
+    const uploadImage = async (file: File, view: EditorView) => {
+        
+        const formData = new FormData();
+        formData.append("File", file);
+        formData.append("ExamId", examId);
+        
+        const response = await fetch(`${env.teacherWriteAPIUrl}/api/v1/Upload/Image`, {
+            method: "POST",
+            body: formData,
+        })
+        
+        if (!response.ok) {
+            return;
+        }
+        
+        
+        const data = await response.json();
+        
+        const node = view.state.schema.nodes.image.create({ src: data.url })
+        const transaction = view.state.tr.replaceSelectionWith(node)
+        view.dispatch(transaction)
+    }
     
     const handleSubmit = (_: any) => {
         if (onSubmit) {

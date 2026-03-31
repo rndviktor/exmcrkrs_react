@@ -47,7 +47,7 @@ export default function NewQuestion() {
             <Link className={classes.smButton} to="/"><MdHome size={18}/></Link>
         </div>
         <div className="flex flex-col flex-1">
-            <QuestionContentEditor content={content} createNew={true} onSubmit={(str: string) => {setContent(str)}}/>
+            <QuestionContentEditor examId={examId!} content={content} createNew={true} onSubmit={(str: string) => {setContent(str)}}/>
         </div>
     </Form>)
 }

@@ -87,7 +87,7 @@ export default function QuestionDetails() {
                 <MdDelete size={18}/>
             </button>
         </div>
-        <QuestionContentEditor content={content!} createNew={false} onSubmit={async (str: string) => handleContentSubmit(str)}/>
+        <QuestionContentEditor examId={examId!} content={content!} createNew={false} onSubmit={async (str: string) => handleContentSubmit(str)}/>
         {question?.Answers?.map((answer: AnswerType) => <Answer key={answer.AnswerId} examId={examId!} questionId={questionId!}
                                                                 answer={answer} isEditable={true}
                                                                 onSubmitted={onAnswerListUpdated}
