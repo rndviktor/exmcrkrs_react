@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import type { AnswerType, QuestionType } from "../types.ts";
 import classes from "./QuestionDetails.module.css";
 import {MdDelete, MdHome, MdQuestionAnswer} from "react-icons/md";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import Answer from "../components/Answer.tsx";
 import Confirm from "../components/Confirm.tsx";
 import {useEnv} from "../EnvProvider.tsx";
