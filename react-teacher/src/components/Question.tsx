@@ -1,11 +1,13 @@
-import type {AnswerType, QuestionType} from "../types.ts";
+import type { AnswerType, QuestionType } from "../types.ts";
 import Answer from "./Answer.tsx";
-import {Link} from "react-router-dom";
-import {MdEdit} from "react-icons/md";
+import { Link } from "react-router-dom";
+import { MdEdit } from "react-icons/md";
 import classes from "./Question.module.css";
 
-export default function Question({examId, question}: { examId: string | null, question: QuestionType }) {
-    const  qId = `question_edit_${question.QuestionId}`
+import React from "react";
+
+const Question = ({ examId, question }: { examId: string | null, question: QuestionType }) => {
+    const qId = `question_edit_${question.QuestionId}`
     return <>
         <div className="text-sm font-light text-gray-400">{question.QuestionId}</div>
         <div className="w-full flex flex-1">
@@ -13,13 +15,15 @@ export default function Question({examId, question}: { examId: string | null, qu
                  dangerouslySetInnerHTML={{ __html: question.Content! }}
             />
             <Link id={qId} className={classes.button} to={`/exam/${examId}/editQuestion/${question.QuestionId}`}>
-                <MdEdit size={16}/>
+                <MdEdit size={16} />
             </Link>
         </div>
 
         <div className="px-6">
             {question.Answers?.map((answer: AnswerType) => <Answer key={answer.AnswerId} examId={examId!} questionId={question.QuestionId!}
-                                                                   answer={answer}/>)}
+                answer={answer} />)}
         </div>
     </>
 }
+
+export default React.memo(Question);

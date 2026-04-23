@@ -1,4 +1,4 @@
-import {createContext, type ReactNode, useContext, useEffect, useRef, useState} from "react";
+import {createContext, type ReactNode, useContext, useEffect, useRef, useState, useMemo, useCallback} from "react";
 import type {ExamType, QuestionType} from "./types.ts";
 import {useEnv} from "./EnvProvider.tsx";
 
@@ -19,41 +19,44 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({children}) => {
     const [exams, setExams] = useState<(ExamType)[]>([])
     const env = useEnv()
     
-    const addExam = (exam: ExamType) => {
+    const addExam = useCallback((exam: ExamType) => {
         setExams((prevExams) => [...prevExams, exam]);
-    }
+    }, []);
     
-    const removeExam = (examId: string) => {
-        const filteredExams = exams.filter(ex => ex.ExamId !== examId)
-        setExams(filteredExams);
-    }
+    const removeExam = useCallback((examId: string) => {
+        setExams((prevExams) => prevExams.filter(ex => ex.ExamId !== examId));
+    }, []);
 
     const didFetchRef = useRef(false);
     
-    const addOrUpdateQuestion = (examId: string, question: QuestionType) => {
-        let exam = exams.find(ex => ex.ExamId === examId)
-        if (exam) {
-            const existingQuestion = exam.Questions?.find(q => q.QuestionId === question.QuestionId);
-            let questions: QuestionType[]|undefined = exam.Questions;
-            if (!existingQuestion) {
-                questions = [...questions, question]
-            } else {
-                questions = questions.map(q => q.QuestionId === question.QuestionId ? question : q)
+    const addOrUpdateQuestion = useCallback((examId: string, question: QuestionType) => {
+        setExams(prevExams => {
+            let exam = prevExams.find(ex => ex.ExamId === examId)
+            if (exam) {
+                const existingQuestion = exam.Questions?.find(q => q.QuestionId === question.QuestionId);
+                let questions: QuestionType[]|undefined = exam.Questions || [];
+                if (!existingQuestion) {
+                    questions = [...questions, question]
+                } else {
+                    questions = questions.map(q => q.QuestionId === question.QuestionId ? question : q)
+                }
+                exam = {...exam, Questions: questions};
+                return prevExams.map(ex => ex.ExamId === examId ? exam! : ex)
             }
-            exam = {...exam, Questions: questions};
-            const newExams = exams.map(ex => ex.ExamId === examId ? exam! : ex)
-            setExams(newExams)
-        }
-    }
+            return prevExams;
+        });
+    }, []);
     
-    const removeQuestion = (examId: string, questionId: string) => {
-        let exam = exams.find(ex => ex.ExamId === examId)
-        if (exam) {
-            exam.Questions = exam.Questions.filter(q => q.QuestionId !== questionId)
-            const newExams = exams.map(ex => ex.ExamId === examId ? exam! : ex)
-            setExams(newExams)
-        }
-    }
+    const removeQuestion = useCallback((examId: string, questionId: string) => {
+        setExams(prevExams => {
+            let exam = prevExams.find(ex => ex.ExamId === examId)
+            if (exam) {
+                exam = {...exam, Questions: exam.Questions ? exam.Questions.filter(q => q.QuestionId !== questionId) : []}
+                return prevExams.map(ex => ex.ExamId === examId ? exam! : ex)
+            }
+            return prevExams;
+        });
+    }, []);
     
     useEffect(() => {
         if (didFetchRef.current) return;
@@ -73,9 +76,16 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({children}) => {
         return () => { didFetchRef.current = true; };
     }, [])
     
-    
+    const contextValue = useMemo(() => ({
+        exams,
+        addExam,
+        addOrUpdateQuestion,
+        removeQuestion,
+        removeExam
+    }), [exams, addExam, addOrUpdateQuestion, removeQuestion, removeExam]);
+
     return (
-        <ExamContext.Provider value={{ exams, addExam, addOrUpdateQuestion, removeQuestion, removeExam }}>
+        <ExamContext.Provider value={contextValue}>
             {children}
         </ExamContext.Provider>
     )

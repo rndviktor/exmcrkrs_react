@@ -1,103 +1,112 @@
-﻿import {useEnv} from "../EnvProvider.tsx";
-import {useEffect, useRef, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
-import type {AnswerType, QuestionType} from "../types.ts";
+﻿import { useEnv } from "../EnvProvider.tsx";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import type { AnswerType, QuestionType } from "../types.ts";
 import Answer from "./Answer.tsx";
 import classes from './Question.module.css';
 
 export default function Question() {
     const env = useEnv()
     const navigate = useNavigate()
-    const {submissionId, questionId} = useParams();
-    const [question, setQuestion] = useState<QuestionType|null>(null)
+    const { submissionId, questionId } = useParams();
+    const [question, setQuestion] = useState<QuestionType | null>(null)
     const [content, setContent] = useState('')
     const didFetchRef = useRef(false);
     const didLoadSubmittedRef = useRef(false);
     const [selectedAnswers, setSelectedAnswers] = useState<string[]>([])
 
     useEffect(() => {
-        if (didFetchRef.current) return;
+        let ignore = false;
         const controller = new AbortController();
-        
+
         const fetchQuestion = async (submissionId: string, questionId: string) => {
-            const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/questionView/${submissionId}/${questionId}`);
-            if (response.ok && response.status === 200) {
-                const resData = await response.json();
-                setQuestion(resData.Question);
-                
-                const contentResponse = await fetch(`http://localhost:8080/assets/${resData.Question?.ContentUrl}`,
-                    {
+            try {
+                const questionEnd = questionId ? `/${questionId}` : '';
+                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/questionView/${submissionId}${questionEnd}`, { signal: controller.signal });
+                if (response.ok && response.status === 200) {
+                    const resData = await response.json();
+                    if (!ignore) setQuestion(resData.Question);
+
+                    const contentResponse = await fetch(`http://localhost:8080/assets/${resData.Question?.ContentUrl}`, {
                         signal: controller.signal,
-                    }    
-                );
-                
-                if (!contentResponse.ok) {
-                    setContent('content loading error')
-                } else {
-                    const data = await contentResponse.text();
-                    setContent(extractBodyContent(data));
+                    });
+
+                    if (!ignore) {
+                        if (!contentResponse.ok) {
+                            setContent('content loading error');
+                        } else {
+                            const data = await contentResponse.text();
+                            setContent(extractBodyContent(data));
+                        }
+
+                        if (resData.QuestionSubmission?.SelectedAnswers) {
+                            setSelectedAnswers(resData.QuestionSubmission?.SelectedAnswers);
+                            didLoadSubmittedRef.current = true;
+                        }
+                    }
                 }
-                
-                if (resData.QuestionSubmission?.SelectedAnswers) {
-                    setSelectedAnswers(resData.QuestionSubmission?.SelectedAnswers);
-                    didLoadSubmittedRef.current = true;
-                }
-                
+            } catch (err) {
+                console.log(err);
             }
-        }
-        
-        fetchQuestion(submissionId!, questionId!)
-        return () => { didFetchRef.current = false; };
-    }, [submissionId, questionId]);
-    
-    const onAnswerSelectionChange = (answerId: string)=> {
-        const existing = selectedAnswers.find(x => x === answerId);
-        if (existing) {
-            const filteredAnswers = selectedAnswers.filter(x => x !== answerId);
-            setSelectedAnswers(filteredAnswers);
-        } else {
-            setSelectedAnswers([...selectedAnswers, answerId])
-        }
-    }
-    
-    const handleNext = async() => {
+        };
+
+        fetchQuestion(submissionId!, questionId!);
+        return () => {
+            ignore = true;
+            controller.abort();
+        };
+    }, [submissionId, questionId, env.studentQueryAPIUrl]);
+
+    const onAnswerSelectionChange = useCallback((answerId: string) => {
+        setSelectedAnswers(prev => {
+            const existing = prev.find(x => x === answerId);
+            if (existing) {
+                return prev.filter(x => x !== answerId);
+            }
+            return [...prev, answerId];
+        });
+    }, []);
+
+    const handleNext = async () => {
         const selection = {
             QuestionId: question?.QuestionId,
             SelectedAnswers: Array.from(selectedAnswers),
             StudentId: env.defaultStudentId
         }
-        
+
         let stringPath = "finishExam";
         let destination = "/";
         if (question?.NextQuestionId) {
             stringPath = "addQuestionSubmission"
             destination = `/${submissionId}/question/${question.NextQuestionId}`
-            if(didLoadSubmittedRef.current) {
+            if (didLoadSubmittedRef.current) {
                 stringPath = "editQuestionSubmission"
             }
         }
 
         const res = await fetch(`${env.studentWriteAPIUrl}/api/v1/${stringPath}/${submissionId}`, {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(selection),
         });
-        
-        if (res.ok && (res.status == 201||res.status == 200)) {
+
+        if (res.ok && (res.status == 201 || res.status == 200)) {
             didFetchRef.current = false;
             let options = {}
             if (destination === '/') {
-                options = {state: {fromQuestion: true}}
+                options = { state: { fromQuestion: true } }
+                setTimeout(() => navigate(destination, options), 100)
+            } else {
+                navigate(destination, options);    
             }
-            navigate(destination, options);
         }
     }
-    
-    const handlePrev = async() => {
+
+    const handlePrev = async () => {
         didFetchRef.current = false;
         navigate(`/${submissionId}/question/${question?.PrevQuestionId}`)
     }
-    
+
     return (<>
         <div className="whitespace-pre-line border-b-2 border-l-2 border-t-4 border-t-cyan-600 flex-1 mx-2 question-content"
             dangerouslySetInnerHTML={{ __html: content }}
@@ -107,7 +116,7 @@ export default function Question() {
                 key={answer.AnswerId}
                 answer={answer}
                 onSelectChange={() => onAnswerSelectionChange(answer.AnswerId!)}
-                checked={!!selectedAnswers.find(x => x == answer.AnswerId)}/>))}
+                checked={!!selectedAnswers.find(x => x == answer.AnswerId)} />))}
         </div>
         <div className="flex flex-row justify-between my-10">
             <button className={classes.button} disabled={!question?.PrevQuestionId} onClick={handlePrev}>Prev</button>
