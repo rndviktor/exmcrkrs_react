@@ -1,3 +1,6 @@
+@import '../@/styles/_variables.scss';
+@import '../@/styles/_keyframe-animations.scss';
+
 @import "tailwindcss";
 
 @theme {
@@ -75,5 +78,14 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+question-content p:empty::before {
+  content: "\00a0"; /* This is a Unicode non-breaking space */
+  display: inline-block;
+}
+
+.question-content p {
+  min-height: 1em;
 }
 
