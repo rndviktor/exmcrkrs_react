@@ -5,22 +5,25 @@ import {useState} from "react";
 import {useExamContext} from "../ExamProvider.tsx";
 import type {ExamType} from "../types.ts";
 import {useEnv} from "../EnvProvider.tsx";
+import { useAuth } from "react-oidc-context";
 
 export default function NewExam() {
     const [title, setTitle] = useState('')
     const { addExam } = useExamContext()
     const navigate = useNavigate();
     const env = useEnv();
+    const auth = useAuth();
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!title.trim()) return;
         
-        const submitData = {Title: title, authorId: env.defaultTeacherId};
+        const submitData = {Title: title}; //TODO fix on b/e
         const response = await fetch(`${env.teacherWriteAPIUrl}/api/v1/newExam`, {
             method: 'POST',
             body: JSON.stringify(submitData),
             headers: {
                 'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
             }
         });
         setTitle("");

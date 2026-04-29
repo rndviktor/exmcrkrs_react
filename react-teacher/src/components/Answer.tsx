@@ -7,6 +7,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import Confirm from "./Confirm.tsx";
 import { useEnv } from "../EnvProvider.tsx";
 import React from "react";
+import { useAuth } from "react-oidc-context";
 
 const Answer = ({ examId, questionId, answer, isEditable = false, onSubmitted, onDismissed, onDelete }: {
     examId: string,
@@ -23,6 +24,7 @@ const Answer = ({ examId, questionId, answer, isEditable = false, onSubmitted, o
     const [answerContent, setAnswerContent] = useState(answer?.Content || "");
     const env = useEnv();
     const ansId = `answer_${answer?.AnswerId}`;
+    const auth = useAuth();
 
     const handleSubmit = async () => {
 
@@ -41,7 +43,10 @@ const Answer = ({ examId, questionId, answer, isEditable = false, onSubmitted, o
         }
         const response = await fetch(`${env.teacherWriteAPIUrl}/api/v1/${urlPart}/${examId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
             body: JSON.stringify(submitData),
         });
 
@@ -59,7 +64,10 @@ const Answer = ({ examId, questionId, answer, isEditable = false, onSubmitted, o
     const handleDeletion = async () => {
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/removeAnswer/${examId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
             body: JSON.stringify({ questionId: questionId, answerId: answer!.AnswerId }),
         });
 

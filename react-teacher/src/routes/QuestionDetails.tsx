@@ -8,6 +8,7 @@ import Confirm from "../components/Confirm.tsx";
 import {useEnv} from "../EnvProvider.tsx";
 import {useExamContext} from "../ExamProvider.tsx";
 import QuestionContentEditor from "../components/QuestionContentEditor.tsx";
+import { useAuth } from "react-oidc-context";
 
 export default function QuestionDetails() {
     const { exams, addOrUpdateQuestion, removeQuestion } = useExamContext()
@@ -32,6 +33,7 @@ export default function QuestionDetails() {
     const [showDelete, setShowDelete] = useState<boolean>(false);
     const navigate = useNavigate();
     const env = useEnv();
+    const auth = useAuth();
     const onDismissed = useCallback(() => setIsAnswerAdding(false), []);
 
     const onAnswerListUpdated = useCallback(async (answer: AnswerType) => {
@@ -63,7 +65,10 @@ export default function QuestionDetails() {
         };
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/editQuestionContent/${examId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
             body: JSON.stringify(submitQuestion),
         });
         setContent(cont)
@@ -73,7 +78,10 @@ export default function QuestionDetails() {
     const handleDeletion = async () => {
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/removeQuestion/${examId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
             body: JSON.stringify({ questionId: questionId }),
         });
         removeQuestion(examId!, questionId!)

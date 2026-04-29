@@ -19,6 +19,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from '@tiptap/extension-image'
 import { EditorView } from '@tiptap/pm/view'
 import {useEnv} from "../EnvProvider.tsx";
+import { useAuth } from "react-oidc-context";
 
 
 export default function QuestionContentEditor({ examId, content, createNew, onSubmit }:{examId: string, content: string|null, createNew: boolean, onSubmit?: (data: string) => void }) {
@@ -75,6 +76,7 @@ export default function QuestionContentEditor({ examId, content, createNew, onSu
     }
 
     const env = useEnv();
+    const auth = useAuth();
 
     useEffect(() => {
         editor.commands.setContent(content)
@@ -92,6 +94,7 @@ export default function QuestionContentEditor({ examId, content, createNew, onSu
         
         const response = await fetch(`${env.teacherWriteAPIUrl}/api/v1/Upload/Image`, {
             method: "POST",
+            headers: {"Authorization": `Bearer ${auth.user?.access_token}`},
             body: formData,
         })
         

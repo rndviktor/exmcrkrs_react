@@ -9,6 +9,7 @@ import {GiConfirmed} from "react-icons/gi";
 import {useEnv} from "../EnvProvider.tsx";
 import {useExamContext} from "../ExamProvider.tsx";
 import Publish from "./Publish.tsx";
+import { useAuth } from "react-oidc-context";
 
 export default function Exam({exam}: { exam: ExamType }) {
     const [showDelete, setShowDelete] = useState(false);
@@ -19,12 +20,16 @@ export default function Exam({exam}: { exam: ExamType }) {
     const { removeExam } = useExamContext()
     const env = useEnv();
     const examId = `exam_${exam.ExamId}`
+    const auth = useAuth();
 
 
     const handleDeletion = async () => {
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/deleteExam/${exam.ExamId}`, {
             method: 'DELETE',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
             body: JSON.stringify({authorId: env.defaultTeacherId}),
         });
         
@@ -37,8 +42,11 @@ export default function Exam({exam}: { exam: ExamType }) {
     const handleSubmit = async () => {
         await fetch(`${env.teacherWriteAPIUrl}/api/v1/editExamTitle/${exam.ExamId}`, {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({authorId: env.defaultTeacherId, title: title}),
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
+            body: JSON.stringify({ title: title }),
         });
 
         setIsEditTitle(false)
@@ -54,7 +62,8 @@ export default function Exam({exam}: { exam: ExamType }) {
             body: JSON.stringify(submitData),
             headers: {
                 'Content-Type': 'application/json',
-            }
+                "Authorization": `Bearer ${auth.user?.access_token}`
+            },
         });
         
         setIsPublishing(true);

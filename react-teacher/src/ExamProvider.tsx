@@ -1,6 +1,7 @@
 import {createContext, type ReactNode, useContext, useEffect, useRef, useState, useMemo, useCallback} from "react";
 import type {ExamType, QuestionType} from "./types.ts";
 import {useEnv} from "./EnvProvider.tsx";
+import { useAuth } from "react-oidc-context";
 
 interface ExamState {
     exams: ExamType[];
@@ -18,6 +19,7 @@ interface ExamProviderProps {
 export const ExamProvider: React.FC<ExamProviderProps> = ({children}) => {
     const [exams, setExams] = useState<(ExamType)[]>([])
     const env = useEnv()
+    const auth = useAuth();
     
     const addExam = useCallback((exam: ExamType) => {
         setExams((prevExams) => [...prevExams, exam]);
@@ -60,9 +62,20 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({children}) => {
     
     useEffect(() => {
         if (didFetchRef.current) return;
+
+        if (!auth.isAuthenticated || !auth.user?.access_token) return;
+
         const fetchExams = async () => {
             try {
-                const response = await fetch(`${env.teacherQueryAPIUrl}/api/v1/examLookup/byAuthorId/${env.defaultTeacherId}`);
+                const response = await fetch(`${env.teacherQueryAPIUrl}/api/v1/examLookup/byAuthorId/`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${auth.user?.access_token}`,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    }
+                });
+
                 if (response.ok && response.status === 200) {
                     const resData = await response.json();
                     setExams(resData?.Exams || []);
@@ -74,7 +87,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({children}) => {
         
         fetchExams();
         return () => { didFetchRef.current = true; };
-    }, [])
+    }, [auth.isAuthenticated, auth.user?.access_token])
     
     const contextValue = useMemo(() => ({
         exams,

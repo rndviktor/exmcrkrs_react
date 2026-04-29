@@ -6,6 +6,7 @@ import type {QuestionType} from "../types.ts";
 import {useEffect, useState} from "react";
 import {useEnv} from "../EnvProvider.tsx";
 import QuestionContentEditor from "../components/QuestionContentEditor.tsx";
+import { useAuth } from "react-oidc-context";
 
 export default function NewQuestion() {
     const [content, setContent] = useState('')
@@ -13,6 +14,7 @@ export default function NewQuestion() {
     const { addOrUpdateQuestion } = useExamContext();
     const navigate = useNavigate();
     const env = useEnv();
+    const auth = useAuth();
     
     const submitData = async (data: string)=> {
         if (!data.length) return;
@@ -22,6 +24,7 @@ export default function NewQuestion() {
             body: JSON.stringify({content: data}),
             headers: {
                 'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`
             }
         });
 
