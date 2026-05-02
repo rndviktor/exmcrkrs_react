@@ -1,10 +1,11 @@
 ﻿import { NavLink, Outlet } from "react-router-dom";
 import { ChevronDown } from 'lucide-react';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useEnv } from "../EnvProvider.tsx";
 import type { ExamSubmissionsViewModel, ExamSubmissionType, QuestionViewModel } from "../types.ts";
 import React from "react";
 import ExamSubmissionView from "./ExamSubmissionView.tsx";
+import { useAuth } from "react-oidc-context";
 
 const scorePercentString = (score: number) => {
     const percent = score * 100;
@@ -17,6 +18,14 @@ const formatDateTime = (date: Date) => {
     return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+const parseJwt = (token: string) => {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+        return null;
+    }
+};
+
 const tabs = [
     { name: 'Exams', href: '/' },
     { name: 'Grades', href: '/grades' },
@@ -24,6 +33,17 @@ const tabs = [
 
 export default function Grades() {
     const env = useEnv()
+
+    const auth = useAuth();
+
+    const accessToken = auth.user?.access_token;
+
+    const userId = useMemo(() => { // TODO - change to backend check
+        if (!accessToken) return null;
+        
+        const decodedToken = parseJwt(accessToken);
+        return decodedToken?.sub || decodedToken?.id;
+    }, [accessToken]);
 
     const [openId, setOpenId] = useState<string | null>(null);
 
@@ -42,7 +62,7 @@ export default function Grades() {
         setSubmissions(updateSubms);
 
         try {
-            const response = await fetch(`${env.evaluatorAPIUrl}/api/v1/correctness/${env.defaultStudentId}/submissions/${id}`);
+            const response = await fetch(`${env.evaluatorAPIUrl}/api/v1/correctness/${userId}/submissions/${id}`);
             if (response.ok && response.status === 200) {
                 const resData = await response.json() as QuestionViewModel
                 resData.Submissions = resData.Submissions.map(sub => { return { ...sub, ScoreString: scorePercentString(sub.Score) } })
@@ -59,7 +79,15 @@ export default function Grades() {
 
         const fetchGrades = async () => {
             try {
-                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/submissionView/${env.defaultStudentId}`);
+                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/submissionView`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: {
+                            "Authorization": `Bearer ${auth.user?.access_token}`,
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        }
+                    });
                 if (response.ok && response.status === 200) {
                     const resData = await response.json() as ExamSubmissionsViewModel[];
 
@@ -72,7 +100,7 @@ export default function Grades() {
                         }
                     });
 
-                    const evalResponse = await fetch(`${env.evaluatorAPIUrl}/api/v1/submissions/${env.defaultStudentId}`)
+                    const evalResponse = await fetch(`${env.evaluatorAPIUrl}/api/v1/submissions/${userId}`)
                     if (evalResponse.ok) {
                         const evalResData = await evalResponse.json() as ExamSubmissionType[];
 
@@ -97,7 +125,7 @@ export default function Grades() {
         fetchGrades();
 
         return () => { ignore = true; };
-    }, [env.defaultStudentId, env.evaluatorAPIUrl, env.studentQueryAPIUrl])
+    }, [userId, env.evaluatorAPIUrl, env.studentQueryAPIUrl])
 
 
     return (<>

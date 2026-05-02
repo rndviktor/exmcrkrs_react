@@ -1,8 +1,9 @@
 ﻿import ExamSelect from "./ExamSelect.tsx";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEnv } from "../EnvProvider.tsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { ExamType } from "../types.ts";
+import { useAuth } from "react-oidc-context";
 
 const tabs = [
     { name: 'Exams', href: '/' },
@@ -15,16 +16,34 @@ export default function MainView() {
     const [gradeNav, setGradeNav] = useState<boolean>(false)
     const navigate = useNavigate();
     const location = useLocation();
+    const auth = useAuth();
+
+    const hasRun = useRef(false);
 
     useEffect(() => {
-        let ignore = false;
+        if (!hasRun.current) {
+            const fetchExams = async () => {
+                try {
+                    await fetch(`${env.studentWriteAPIUrl}/api/v1/register-sync`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            "Authorization": `Bearer ${auth.user?.access_token}`
+                        }
+                    });
 
-        const fetchExams = async () => {
-            try {
-                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/examView/${env.defaultStudentId}`);
-                if (response.ok && response.status === 200) {
-                    const resData = await response.json();
-                    if (!ignore) {
+
+                    const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/examView`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: {
+                            "Authorization": `Bearer ${auth.user?.access_token}`,
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        }
+                    });
+                    if (response.ok && response.status === 200) {
+                        const resData = await response.json();
                         console.log('-res', resData);
                         if (!location.state?.fromQuestion && resData.ExamInProcess) {
                             const { ExamSubmissionId, QuestionId } = resData.ExamInProcess
@@ -38,15 +57,16 @@ export default function MainView() {
                             navigate(location.pathname, { replace: true, state: {} });
                         }
                     }
+                } catch (error) {
+                    console.log('Fetch error:', error);
                 }
-            } catch (error) {
-                console.log('Fetch error:', error);
             }
-        }
 
-        fetchExams();
-        return () => { ignore = true; };
-    }, [location, navigate, env.studentQueryAPIUrl, env.defaultStudentId]);
+            fetchExams();
+            hasRun.current = true;
+        }
+        
+    }, [location, navigate, env.studentQueryAPIUrl]);
 
 
     return (

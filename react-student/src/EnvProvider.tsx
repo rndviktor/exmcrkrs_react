@@ -5,7 +5,6 @@ interface Env {
     studentQueryAPIUrl: string;
     studentWriteAPIUrl: string;
     evaluatorAPIUrl: string;
-    defaultStudentId: string;
 }
 
 const EnvContext = createContext<Env|null>(null);
@@ -19,7 +18,6 @@ const EnvProvider: React.FC<EnvProviderProps> = ({children}) => {
         studentQueryAPIUrl: import.meta.env.VITE_STUDENT_QUERY_URL,
         studentWriteAPIUrl: import.meta.env.VITE_STUDENT_WRITE_URL,
         evaluatorAPIUrl: import.meta.env.VITE_EVALUATOR_URL,
-        defaultStudentId: import.meta.env.VITE_STUDENT_ID,
     }
     
     return <EnvContext.Provider value={env}>{children}</EnvContext.Provider>

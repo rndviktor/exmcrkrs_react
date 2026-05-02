@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { AnswerType, QuestionType } from "../types.ts";
 import Answer from "./Answer.tsx";
 import classes from './Question.module.css';
+import { useAuth } from "react-oidc-context";
 
 export default function Question() {
     const env = useEnv()
@@ -14,6 +15,7 @@ export default function Question() {
     const didFetchRef = useRef(false);
     const didLoadSubmittedRef = useRef(false);
     const [selectedAnswers, setSelectedAnswers] = useState<string[]>([])
+    const auth = useAuth();
 
     useEffect(() => {
         let ignore = false;
@@ -22,7 +24,16 @@ export default function Question() {
         const fetchQuestion = async (submissionId: string, questionId: string) => {
             try {
                 const questionEnd = questionId ? `/${questionId}` : '';
-                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/questionView/${submissionId}${questionEnd}`, { signal: controller.signal });
+                const response = await fetch(`${env.studentQueryAPIUrl}/api/v1/questionView/${submissionId}${questionEnd}`, {
+                    method: 'GET',
+                    signal: controller.signal,
+                    credentials: "include",
+                    headers: {
+                        "Authorization": `Bearer ${auth.user?.access_token}`,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    }
+                });
                 if (response.ok && response.status === 200) {
                     const resData = await response.json();
                     if (!ignore) setQuestion(resData.Question);
@@ -70,8 +81,7 @@ export default function Question() {
     const handleNext = async () => {
         const selection = {
             QuestionId: question?.QuestionId,
-            SelectedAnswers: Array.from(selectedAnswers),
-            StudentId: env.defaultStudentId
+            SelectedAnswers: Array.from(selectedAnswers)
         }
 
         let stringPath = "finishExam";
@@ -86,7 +96,10 @@ export default function Question() {
 
         const res = await fetch(`${env.studentWriteAPIUrl}/api/v1/${stringPath}/${submissionId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`,
+            },
             body: JSON.stringify(selection),
         });
 

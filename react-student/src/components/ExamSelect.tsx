@@ -5,6 +5,7 @@ import { MdEdit } from "react-icons/md";
 import type { ExamType, PaymentConfirmationSubmission } from "../types.ts";
 import { PaymentConfirmation } from "./PaymentConfirmation.tsx";
 import {useNavigate} from "react-router-dom";
+import { useAuth } from "react-oidc-context";
 
 export default function ExamSelect({ exams }: { exams: ExamType[] }) {
     const env = useEnv()
@@ -12,11 +13,15 @@ export default function ExamSelect({ exams }: { exams: ExamType[] }) {
     const [pubKey, setPubKey] = useState("")
     const [errorMessage, setErrorMessage] = useState('')
     const navigate = useNavigate();
+    const auth = useAuth();
 
     const handleStart = useCallback(async (submission: PaymentConfirmationSubmission) => {
-        const response = await fetch(`${env.studentWriteAPIUrl}/api/v1/examStart/${env.defaultStudentId}`, {
+        const response = await fetch(`${env.studentWriteAPIUrl}/api/v1/examStart`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${auth.user?.access_token}`,
+            },
             body: JSON.stringify(submission),
         });
 
@@ -34,7 +39,7 @@ export default function ExamSelect({ exams }: { exams: ExamType[] }) {
                 navigate(`/${resData.SubmissionInProcess.ExamSubmissionId}/question`)
             }
         }
-    }, [env.defaultStudentId, env.studentWriteAPIUrl]);
+    }, [env.studentWriteAPIUrl]);
 
     return (<>{exams && exams.map((exam: ExamType) => (<div key={exam.ExamId} className="flex flex-col">
         {exam.Title}, Version# {exam.Version}
