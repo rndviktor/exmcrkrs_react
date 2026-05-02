@@ -15,13 +15,20 @@ const oidcConfig = {
     authority: import.meta.env.VITE_AUTHORITY,
     client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
     redirect_uri: window.location.origin,
+    onSigninCallback: () => {
+        window.history.replaceState(
+            {}, 
+            document.title, 
+            window.location.pathname
+        );
+    }
 }
 
 const router = createBrowserRouter([{
     path: '/',
     children: [
         {
-            element: <ProtectedRoute allowedRoles={['student']} />,
+            element: <ProtectedRoute allowedRoles={['student', 'teacher']} />,
             children: [
                 {
                     element: <RootLayout />,
