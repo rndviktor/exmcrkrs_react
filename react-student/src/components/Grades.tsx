@@ -62,7 +62,15 @@ export default function Grades() {
         setSubmissions(updateSubms);
 
         try {
-            const response = await fetch(`${env.evaluatorAPIUrl}/api/v1/correctness/${userId}/submissions/${id}`);
+            const response = await fetch(`${env.evaluatorAPIUrl}/api/v1/correctness/${userId}/submissions/${id}`, {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    "Authorization": `Bearer ${auth.user?.access_token}`,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+            });
             if (response.ok && response.status === 200) {
                 const resData = await response.json() as QuestionViewModel
                 resData.Submissions = resData.Submissions.map(sub => { return { ...sub, ScoreString: scorePercentString(sub.Score) } })
@@ -100,7 +108,15 @@ export default function Grades() {
                         }
                     });
 
-                    const evalResponse = await fetch(`${env.evaluatorAPIUrl}/api/v1/submissions/${userId}`)
+                    const evalResponse = await fetch(`${env.evaluatorAPIUrl}/api/v1/submissions/${userId}`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: {
+                            "Authorization": `Bearer ${auth.user?.access_token}`,
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        }
+                    })
                     if (evalResponse.ok) {
                         const evalResData = await evalResponse.json() as ExamSubmissionType[];
 
