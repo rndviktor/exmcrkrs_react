@@ -43,7 +43,7 @@ export default function ExamSelect({ exams }: { exams: ExamType[] }) {
 
     return (<>{exams && exams.map((exam: ExamType) => (<div key={exam.ExamId} className="flex flex-col">
         {exam.Title}, Version# {exam.Version}
-        <button className={classes.button} onClick={() => handleStart({ ExamId: exam.ExamId! })}>
+        <button id="exam-start-button" className={classes.button} onClick={() => handleStart({ ExamId: exam.ExamId! })}>
             <MdEdit size={28} /> Start Exam
         </button>
     </div>))}

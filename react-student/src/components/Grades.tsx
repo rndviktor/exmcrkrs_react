@@ -159,6 +159,7 @@ export default function Grades() {
 
             return (<React.Fragment key={id}>
                 <button
+                    id="submission-selection"
                     className={`w-full flex justify-between items-center p-4 text-left focus:outline-none transition-colors ${isOpen ? 'bg-gray-100' : 'bg-white'
                         }`}
                     onClick={() => toggle(id!)}
