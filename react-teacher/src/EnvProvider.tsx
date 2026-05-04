@@ -5,7 +5,6 @@ interface Env {
     teacherQueryAPIUrl: string;
     teacherWriteAPIUrl: string;
     publisherAPIUrl: string;
-    defaultTeacherId: string;
 }
 
 const EnvContext = createContext<Env|null>(null);
@@ -19,7 +18,6 @@ const EnvProvider: React.FC<EnvProviderProps> = ({children}) => {
         teacherQueryAPIUrl: import.meta.env.VITE_TEACHER_QUERY_URL,
         teacherWriteAPIUrl: import.meta.env.VITE_TEACHER_WRITE_URL,
         publisherAPIUrl: import.meta.env.VITE_PUBLISHER_URL,
-        defaultTeacherId: import.meta.env.VITE_TEACHER_ID,
     }
     
     return <EnvContext.Provider value={env}>{children}</EnvContext.Provider>
