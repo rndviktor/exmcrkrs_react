@@ -10,9 +10,6 @@ export default function Exams() {
             <div className="w-full">
                 <ExamsList/>
             </div>
-            <Link className={classes.button} to="/create-exam">
-                <MdPostAdd size={28} id="addExamButton"/> Create Exam
-            </Link>
         </main>
     </>
 }

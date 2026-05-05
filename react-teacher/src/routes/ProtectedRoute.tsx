@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import { Navigate, Outlet } from "react-router-dom";
 
@@ -12,12 +13,17 @@ const parseJwt = (token: string) => {
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles: string[] }) => {
     const auth = useAuth()
 
+    useEffect(() => {
+        if (!auth.isLoading && !auth.isAuthenticated && !auth.activeNavigator) {
+            auth.signinRedirect();
+        }
+    }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth.signinRedirect]);
+
     if (auth.isLoading) {
         return <div>Loading authentication...</div>;
     }
 
     if (!auth.isAuthenticated) {
-        auth.signinRedirect();
         return null;
     }
 

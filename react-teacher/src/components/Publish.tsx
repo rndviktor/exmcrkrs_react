@@ -62,7 +62,9 @@ export default function Publish ({examId, onFinish}:{examId:string, onFinish: ()
         };
     }, [examId])
     
-    return (<div id="publishingMessaging" style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-        {message || "Connecting to stream..."}
-    </div>)
+    return (
+        <div id="publishingMessaging" className="flex-1 p-2 bg-gray-900 text-green-400 font-mono text-sm rounded-md shadow-inner border border-gray-700 flex items-center h-[38px]">
+            &gt; {message || "Connecting to stream..."}
+        </div>
+    )
 }

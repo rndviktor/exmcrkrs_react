@@ -70,37 +70,40 @@ export default function Exam({exam}: { exam: ExamType }) {
     }
 
     return (<>
-        <div id={examId} className="flex flex-row items-center justify-between">
-            <div className="flex flex-row">
-                {!isEditTitle && (<><h2 className="text-2xl font-semibold underline flex-1">{title}</h2>
+        <div id={examId} className="flex flex-row items-center justify-between bg-white px-4 py-2 rounded shadow-sm mb-2 border border-gray-100">
+            <div className="flex flex-row items-center gap-2 w-full">
+                {!isEditTitle && (<><h2 className="text-xl font-semibold text-gray-800 flex-1">{title}</h2>
                     <button id="titleEdit" className={classes.smButton} onClick={() => setIsEditTitle(true)}>
                         <MdEdit size={18}/>
                     </button>
-                    {!isPublishing && <button id="publishExam" className={classes.smButton} onClick={handlePublish}>
-                        <MdOutlinePublishedWithChanges size={18}/>
-                    </button>}
-                    {isPublishing && <Publish examId={exam.ExamId!} onFinish={() => setIsPublishing(false)}/>}
                 </>)}
                 {isEditTitle && (<>
                     <input
                         type="text"
                         value={title}
                         onChange={e => setTitle(e.target.value)}
+                        className="flex-1 border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                     <button id="submitTitle" className={classes.smButton} onClick={handleSubmit}><GiConfirmed size={16}/></button>
                     <button className={classes.smButton} onClick={() => setIsEditTitle(false)}><MdCancel size={16}/>
                     </button>
                 </>)}
             </div>
-            {!isEditTitle && <button className={classes.smButton} onClick={() => setShowDelete(true)}>
+            {!isEditTitle && <button className={classes.smButton + " ml-2"} onClick={() => setShowDelete(true)}>
                 <MdDelete size={18}/>
             </button>}
         </div>
 
         <QuestionsList examId={exam.ExamId} questions={exam.Questions}/>
-        <Link className={classes.button} to={`/exam/${exam.ExamId}/addQuestion`}>
-            <MdQuestionMark size={18} id="addQuestionButton"/> Create Question
-        </Link>
+        <div className="flex flex-row items-center gap-4 mt-4 w-full">
+            <Link className={classes.button} to={`/exam/${exam.ExamId}/addQuestion`}>
+                <MdQuestionMark size={18} id="addQuestionButton"/> Create Question
+            </Link>
+            {!isPublishing && <button id="publishExam" className={classes.button} onClick={handlePublish}>
+                <MdOutlinePublishedWithChanges size={18}/> Publish Exam
+            </button>}
+            {isPublishing && <Publish examId={exam.ExamId!} onFinish={() => setIsPublishing(false)}/>}
+        </div>
 
         <Confirm itemName="Exam" onConfirm={handleDeletion} onCancel={handleCancel} isOpen={showDelete}/>
     </>)

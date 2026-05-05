@@ -8,20 +8,22 @@ export default function MainHeader() {
     };
 
     return (
-        <header className="flex justify-between px-6 bg-white ">
-            <h2 className="text-cyan-600 font-semibold">Student.React</h2>
+        <header className="flex items-center justify-between px-2 py-0.5 bg-transparent mb-1 border-b border-gray-100 pb-1">
+            <div className="flex items-center gap-4">
+                <h2 className="text-cyan-700 font-medium text-xs">Student.React</h2>
+            </div>
 
             {auth.isAuthenticated && (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                     <div className="text-right">
-                        <p className="text-sm font-medium text-gray-700">
+                        <p className="text-[9px] uppercase tracking-wider font-medium text-gray-400">
                             {auth.user?.profile.preferred_username || auth.user?.profile.name}
                         </p>
                     </div>
 
                     <button
                         onClick={handleLogout}
-                        className="px-4 py-2 text-sm font-medium bg-cyan-600 rounded-md hover:bg-cyan-700 transition-colors shadow-sm"
+                        className="text-[9px] uppercase font-bold text-gray-600 hover:text-cyan-700 transition-colors"
                     >
                         Logout
                     </button>
