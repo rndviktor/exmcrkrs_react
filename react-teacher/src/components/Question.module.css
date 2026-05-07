@@ -16,3 +16,26 @@
 .button:hover {
     background-color: #eff6e0;
 }
+
+.minimapContainer {
+    width: 100%;
+    height: 80px;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #f9fafa;
+    position: relative;
+    flex: 1;
+    border-bottom: 2px solid #e5e7eb;
+    border-left: 2px solid #e5e7eb;
+    border-top: 4px solid #0891b2;
+}
+
+.minimapContent {
+    width: 400%;
+    height: 400%;
+    transform: scale(0.25);
+    transform-origin: top left;
+    pointer-events: none;
+    padding: 1rem;
+    overflow: hidden;
+}
